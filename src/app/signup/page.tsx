@@ -1,6 +1,8 @@
 "use client"
 import React from "react";
 import { useState } from "react";
+import {signIn, supabase} from "@/auth";
+import bcrypt from "bcryptjs";
 
 
 
@@ -48,9 +50,15 @@ export function PasswordInput({
     );
 }
 
+
 export default function SignUpScreen() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+        await signIn("credentials",  {redirectTo: "/dashboard", email: email, password: password});
+    }
     return (
         <div>
             <h1 className='text-center font-bold text-3xl mt-50'>
@@ -59,12 +67,15 @@ export default function SignUpScreen() {
             <h3 className='text-center'>
                 Enter your email and password below:
             </h3>
-            <div className="w-96 p-6 border  text-center rounded-lg mx-auto h-75">
+            <form
+                className="w-96 p-6 border  text-center rounded-lg mx-auto h-75"
+                onSubmit={handleSubmit}
+            >
                 <div className="mt-20 text-center">
                     <EmailInput value={email} onChange={setEmail}/>
                     <PasswordInput value={password} onChange={setPassword}/>
                 </div>
-            </div>
+            </form>
         </div>
     );
 }

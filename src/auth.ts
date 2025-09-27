@@ -28,7 +28,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 if (!creds.success) return null;
 
                 const { data: users, error } = await supabase
-                    .from("users")
+                    .from("Profiles")
                     .select("id, email, name, password_hash")
                     .eq("email", creds.data.email)
                     .limit(1);
