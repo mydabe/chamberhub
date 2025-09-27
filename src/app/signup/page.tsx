@@ -56,8 +56,15 @@ export default function SignUpScreen() {
     const [password, setPassword] = useState("")
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-        e.preventDefault();
-        await signIn("credentials",  {redirectTo: "/dashboard", email: email, password: password});
+        e.preventDefault()
+        const { data, error, statusText } =  await supabase.from("Profiles")
+            .insert(
+                {
+                    password_hash: bcrypt.hashSync(password, 10),
+                    email: email
+                })
+                console.log(error)
+        /*HANDLE ERROR*/
     }
     return (
         <div>
@@ -75,6 +82,9 @@ export default function SignUpScreen() {
                     <EmailInput value={email} onChange={setEmail}/>
                     <PasswordInput value={password} onChange={setPassword}/>
                 </div>
+                <button type="submit" className="w-full bg-sky-600 text-black py-2 rounded">
+                    Sign Up!
+                </button>
             </form>
         </div>
     );
