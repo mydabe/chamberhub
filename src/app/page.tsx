@@ -2,13 +2,18 @@ import { signIn } from '@/auth'
 
 export function SignIn() {
     return (
-        <form
+        <form className={"text-center"}
             action={async () => {
                 "use server"
-                await signIn("google")
+                await signIn("google", {redirectTo: "/dashboard"} )
+
             }}
         >
-            <button type="submit">Sign in with Google</button>
+            <button
+                type="submit"
+                className="bg-sky-500 text-white font-mono px-4 py-2 rounded-md ">
+                    Sign in with Google
+            </button>
         </form>
     )
 }
