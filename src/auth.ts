@@ -18,7 +18,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 email: { label: "Email", type: "email" },
                 password: { label: "Password", type: "password" },
             },
-            authorize: async (raw): Promise<any | null> => {
+            authorize: async (raw): Promise< any | null> => {
                 const creds = z
                     .object({
                         email: z.string().email(), // Fixed: use z.string().email() instead of z.email()
@@ -73,9 +73,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         email: user.email,
                         name: user.name || user.email.split('@')[0] // Fallback for name
                     });
+
+                    return "/signup"
                 }
+                return "/dashboard"
             }
-            return true;
+            return true
         }
     },
     secret: process.env.AUTH_SECRET,

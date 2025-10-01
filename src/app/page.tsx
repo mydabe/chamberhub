@@ -9,7 +9,7 @@ export function SignIn() {
                 action={async () => {
                     "use server";
 
-                    await signIn("google", { redirectTo: "/dashboard" });
+                    await signIn("google");
                 }}
             >
                 <button
