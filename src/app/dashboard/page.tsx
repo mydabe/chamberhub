@@ -8,12 +8,17 @@ export async function SignOut() {
 
 export default function DashboardView() {
      return (
-         <div id="main">
+         <div id="main" className="flex">
+             <div className="border w-32 h-32 ">
+
+             </div>
              <form action={SignOut}>
                  <button type="submit">
                      Sign Out
                  </button>
              </form>
+
+
          </div>
      )
 }

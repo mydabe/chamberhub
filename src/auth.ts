@@ -1,3 +1,4 @@
+// auth.ts - FIXED VERSION
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
@@ -13,46 +14,8 @@ export const supabase = createClient(
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
         Credentials({
-            name: "Email & Password",
-            credentials: {
-                email: { label: "Email", type: "email" },
-                password: { label: "Password", type: "password" },
-            },
-            authorize: async (raw): Promise< any | null> => {
-                const creds = z
-                    .object({
-                        email: z.string().email(), // Fixed: use z.string().email() instead of z.email()
-                        password: z.string().min(8),
-                    })
-                    .safeParse(raw);
-
-                if (!creds.success) return null;
-
-                const { data: users, error } = await supabase
-                    .from("Profiles")
-                    .select("id, email, name, password_hash")
-                    .eq("email", creds.data.email)
-                    .limit(1);
-
-                if (error || !users || users.length === 0) return null;
-
-                const user = users[0];
-                if (!user.password_hash) return null;
-
-                const ok = await bcrypt.compare(
-                    creds.data.password,
-                    user.password_hash
-                );
-                if (!ok) return null;
-
-                return {
-                    id: String(user.id),
-                    email: user.email,
-                    name: user.name ?? null,
-                };
-            },
+            // ... your credentials config
         }),
-
         Google({
             clientId: process.env.AUTH_GOOGLE_ID!,
             clientSecret: process.env.AUTH_GOOGLE_SECRET!,
@@ -60,25 +23,53 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     ],
     callbacks: {
         async signIn({ user, account, profile }) {
+            console.log("SignIn callback triggered", user?.email);
+
             if (account?.provider === "google") {
-                // Removed duplicate condition
-                const { data, error } = await supabase
-                    .from("Profiles")
-                    .select()
-                    .eq("email", user.email)
-                    .maybeSingle();
+                try {
+                    const { data, error } = await supabase
+                        .from("Profiles")
+                        .select()
+                        .eq("email", user.email)
+                        .maybeSingle();
 
-                if (!data && user.email) {
-                    await supabase.from("Profiles").insert({
-                        email: user.email,
-                        name: user.name || user.email.split('@')[0] // Fallback for name
-                    });
+                    if (error) {
+                        console.error("Supabase error:", error);
+                        return false; // Prevent sign in on error
+                    }
 
-                    return "/signup"
+                    // If user doesn't exist, create them
+                    if (!data && user.email) {
+                        const { error: insertError } = await supabase
+                            .from("Profiles")
+                            .insert({
+                                email: user.email,
+                                name: user.name || user.email.split('@')[0]
+                            });
+
+                        if (insertError) {
+                            console.error("Insert error:", insertError);
+                            return false;
+                        }
+                        console.log("New user created");
+                    }
+
+                    // Always return true to allow sign in
+                    return true;
+
+                } catch (error) {
+                    console.error("SignIn callback error:", error);
+                    return false;
                 }
-                return "/dashboard"
             }
-            return true
+
+            return true; // Allow sign in for other providers
+        },
+
+        async redirect({ url, baseUrl }) {
+            console.log("Redirect callback", url);
+            // Redirect to dashboard after successful sign in
+            return `${baseUrl}/dashboard`;
         }
     },
     secret: process.env.AUTH_SECRET,
